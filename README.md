@@ -1,408 +1,240 @@
-# SAM 3: Segment Anything with Concepts
+# AutoLabelX
 
-Meta Superintelligence Labs
+`AutoLabelX` 是一个基于 `SAM3` 开发的自动批量预标注工具，面向图像数据集提供检测、实例分割、语义分割的一体化批量预标注流程，支持：
 
-[Nicolas Carion](https://www.nicolascarion.com/)\*,
-[Laura Gustafson](https://scholar.google.com/citations?user=c8IpF9gAAAAJ&hl=en)\*,
-[Yuan-Ting Hu](https://scholar.google.com/citations?user=E8DVVYQAAAAJ&hl=en)\*,
-[Shoubhik Debnath](https://scholar.google.com/citations?user=fb6FOfsAAAAJ&hl=en)\*,
-[Ronghang Hu](https://ronghanghu.com/)\*,
-[Didac Suris](https://www.didacsuris.com/)\*,
-[Chaitanya Ryali](https://scholar.google.com/citations?user=4LWx24UAAAAJ&hl=en)\*,
-[Kalyan Vasudev Alwala](https://scholar.google.co.in/citations?user=m34oaWEAAAAJ&hl=en)\*,
-[Haitham Khedr](https://hkhedr.com/)\*, Andrew Huang,
-[Jie Lei](https://jayleicn.github.io/),
-[Tengyu Ma](https://scholar.google.com/citations?user=VeTSl0wAAAAJ&hl=en),
-[Baishan Guo](https://scholar.google.com/citations?user=BC5wDu8AAAAJ&hl=en),
-Arpit Kalla, [Markus Marks](https://damaggu.github.io/),
-[Joseph Greer](https://scholar.google.com/citations?user=guL96CkAAAAJ&hl=en),
-Meng Wang, [Peize Sun](https://peizesun.github.io/),
-[Roman Rädle](https://scholar.google.com/citations?user=Tpt57v0AAAAJ&hl=en),
-[Triantafyllos Afouras](https://www.robots.ox.ac.uk/~afourast/),
-[Effrosyni Mavroudi](https://scholar.google.com/citations?user=vYRzGGEAAAAJ&hl=en),
-[Katherine Xu](https://k8xu.github.io/)°,
-[Tsung-Han Wu](https://patrickthwu.com/)°,
-[Yu Zhou](https://yu-bryan-zhou.github.io/)°,
-[Liliane Momeni](https://scholar.google.com/citations?user=Lb-KgVYAAAAJ&hl=en)°,
-[Rishi Hazra](https://rishihazra.github.io/)°,
-[Shuangrui Ding](https://mark12ding.github.io/)°,
-[Sagar Vaze](https://sgvaze.github.io/)°,
-[Francois Porcher](https://scholar.google.com/citations?user=LgHZ8hUAAAAJ&hl=en)°,
-[Feng Li](https://fengli-ust.github.io/)°,
-[Siyuan Li](https://siyuanliii.github.io/)°,
-[Aishwarya Kamath](https://ashkamath.github.io/)°,
-[Ho Kei Cheng](https://hkchengrex.com/)°,
-[Piotr Dollar](https://pdollar.github.io/)†,
-[Nikhila Ravi](https://nikhilaravi.com/)†,
-[Kate Saenko](https://ai.bu.edu/ksaenko.html)†,
-[Pengchuan Zhang](https://pzzhang.github.io/pzzhang/)†,
-[Christoph Feichtenhofer](https://feichtenhofer.github.io/)†
+- 检测 `Detection`
+- 实例分割 `Instance Segmentation`
+- 语义分割 `Semantic Segmentation`
 
-\* core contributor, ° intern, † project lead, order is random within groups
+帮助快速生成高质量预标注结果，降低大规模数据标注的启动成本和重复劳动。
 
-[[`Paper`](https://ai.meta.com/research/publications/sam-3-segment-anything-with-concepts/)]
-[[`Project`](https://ai.meta.com/sam3)]
-[[`Demo`](https://segment-anything.com/)]
-[[`Blog`](https://ai.meta.com/blog/segment-anything-model-3/)]
-[[`BibTeX`](#citing-sam-3)]
+## 项目亮点
 
-![SAM 3 architecture](assets/model_diagram.png?raw=true) SAM 3 is a unified foundation model for promptable segmentation in images and videos. It can detect, segment, and track objects using text or visual prompts such as points, boxes, and masks. Compared to its predecessor [SAM 2](https://github.com/facebookresearch/sam2), SAM 3 introduces the ability to exhaustively segment all instances of an open-vocabulary concept specified by a short text phrase or exemplars. Unlike prior work, SAM 3 can handle a vastly larger set of open-vocabulary prompts. It achieves 75-80% of human performance on our new [SA-CO benchmark](https://github.com/facebookresearch/sam3?tab=readme-ov-file#sa-co-dataset) which contains 270K unique concepts, over 50 times more than existing benchmarks.
+- 基于 `SAM3` 文本提示能力，按类别批量生成检测、实例分割与语义分割预标注结果。
+- 单次运行同时产出中间类别结果和最终汇总结果，便于质量检查与后续修订。
+- 支持每个类别独立配置提示词、阈值和可视化颜色，适合自定义数据集快速落地。
+- 输出目录结构清晰统一，方便数据回流、人工复核与训练集整理。
 
-This breakthrough is driven by an innovative data engine that has automatically annotated over 4 million unique concepts, creating the largest high-quality open-vocabulary segmentation dataset to date. In addition, SAM 3 introduces a new model architecture featuring a presence token that improves discrimination between closely related text prompts (e.g., “a player in white” vs. “a player in red”), as well as a decoupled detector–tracker design that minimizes task interference and scales efficiently with data.
+## 效果展示
 
-<p align="center">
-  <img src="assets/dog.gif" width=380 />
-  <img src="assets/player.gif" width=380 />
-</p>
+### 实例分割可视化
 
-## Latest updates
+![Instance Segmentation Visualization](assets/results/instance_segmentation_visualization.jpg)
 
-**03/27/2026 -- SAM 3.1 Object Multiplex is released. It introduces a shared-memory approach for joint multi-object tracking that is significantly faster without sacrificing accuracy.**
+### 语义分割标签图
 
-- A new suite of improved model checkpoints (denoted as **SAM 3.1**) are released on [Hugging Face](https://huggingface.co/facebook/sam3.1). See [`RELEASE_SAM3p1.md`](RELEASE_SAM3p1.md) for full details.
-  * To use the new SAM 3.1 checkpoints, you need the latest model code from this repo. If you have installed an earlier version of this repo, pull the latest code from this repo (with `git pull`), and then reinstall the repo following [Installation](#installation) below.
+![Semantic Segmentation Annotation](assets/results/semantic_segmentation_annotation.png)
 
-## Installation
+### 语义分割可视化
 
-### Prerequisites
+![Semantic Segmentation Visualization](assets/results/semantic_segmentation_visualization.png)
 
-- Python 3.12 or higher
-- PyTorch 2.7 or higher
-- CUDA-compatible GPU with CUDA 12.6 or higher
+## 视频演示
 
-1. **Create a new Conda environment:**
+- Bilibili 演示视频：`待补充`
+
+## 环境要求
+
+已验证环境：
+
+- Ubuntu `20.
+- CUDA `11.8`
+- Python `3.12`
+- PyTorch `2.6.0`
+
+## 安装步骤
+
+建议先创建并激活自己的 `conda` 环境：
 
 ```bash
-conda create -n sam3 python=3.12
-conda deactivate
+conda create -n sam3 python=3.12 -y
 conda activate sam3
 ```
 
-2. **Install PyTorch with CUDA support:**
+安装依赖：
 
 ```bash
-pip install torch==2.10.0 torchvision --index-url https://download.pytorch.org/whl/cu128
+pip install -r requirements.txt
 ```
 
-3. **Clone the repository and install the package:**
+## 模型下载
 
-```bash
-git clone https://github.com/facebookresearch/sam3.git
-cd sam3
-pip install -e .
-```
+运行前需要准备 `SAM3` 权重文件。
 
-4. **Install additional dependencies for example notebooks or development:**
+- Google Drive 下载地址：`待补充`
 
-```bash
-# For running example notebooks
-pip install -e ".[notebooks]"
+下载完成后，将权重文件放到你自己的路径，并在配置文件中通过 `checkpoint` 指定。例如：
 
-# For development
-pip install -e ".[train,dev]"
-```
-
-5. **Optional dependencies for faster inference**
-```bash
-pip install einops ninja && pip install flash-attn-3 --no-deps --index-url https://download.pytorch.org/whl/cu128
-pip install git+https://github.com/ronghanghu/cc_torch.git
-```
-
-## Getting Started
-
-⚠️ Before using SAM 3, please request access to the checkpoints on the SAM 3
-Hugging Face [repo](https://huggingface.co/facebook/sam3). Once accepted, you
-need to be authenticated to download the checkpoints. You can do this by running
-the following [steps](https://huggingface.co/docs/huggingface_hub/en/quick-start#authentication)
-(e.g. `hf auth login` after generating an access token.)
-
-### Basic Usage
-
-```python
-import torch
-#################################### For Image ####################################
-from PIL import Image
-from sam3.model_builder import build_sam3_image_model
-from sam3.model.sam3_image_processor import Sam3Processor
-# Load the model
-model = build_sam3_image_model()
-processor = Sam3Processor(model)
-# Load an image
-image = Image.open("<YOUR_IMAGE_PATH.jpg>")
-inference_state = processor.set_image(image)
-# Prompt the model with text
-output = processor.set_text_prompt(state=inference_state, prompt="<YOUR_TEXT_PROMPT>")
-
-# Get the masks, bounding boxes, and scores
-masks, boxes, scores = output["masks"], output["boxes"], output["scores"]
-
-#################################### For Video ####################################
-
-from sam3.model_builder import build_sam3_video_predictor
-
-video_predictor = build_sam3_video_predictor()
-video_path = "<YOUR_VIDEO_PATH>" # a JPEG folder or an MP4 video file
-# Start a session
-response = video_predictor.handle_request(
-    request=dict(
-        type="start_session",
-        resource_path=video_path,
-    )
-)
-response = video_predictor.handle_request(
-    request=dict(
-        type="add_prompt",
-        session_id=response["session_id"],
-        frame_index=0, # Arbitrary frame index
-        text="<YOUR_TEXT_PROMPT>",
-    )
-)
-output = response["outputs"]
-```
-
-## Examples
-
-The `examples` directory contains notebooks demonstrating how to use SAM3 with
-various types of prompts:
-
-- [`sam3_image_predictor_example.ipynb`](examples/sam3_image_predictor_example.ipynb)
-  : Demonstrates how to prompt SAM 3 with text and visual box prompts on images.
-- [`sam3_video_predictor_example.ipynb`](examples/sam3_video_predictor_example.ipynb)
-  : Demonstrates how to prompt SAM 3 with text prompts on videos, and doing
-  further interactive refinements with points.
-- [`sam3_image_batched_inference.ipynb`](examples/sam3_image_batched_inference.ipynb)
-  : Demonstrates how to run batched inference with SAM 3 on images.
-- [`sam3_agent.ipynb`](examples/sam3_agent.ipynb): Demonsterates the use of SAM
-  3 Agent to segment complex text prompt on images.
-- [`saco_gold_silver_vis_example.ipynb`](examples/saco_gold_silver_vis_example.ipynb)
-  : Shows a few examples from SA-Co image evaluation set.
-- [`saco_veval_vis_example.ipynb`](examples/saco_veval_vis_example.ipynb) :
-  Shows a few examples from SA-Co video evaluation set.
-
-There are additional notebooks in the examples directory that demonstrate how to
-use SAM 3 for interactive instance segmentation in images and videos (SAM 1/2
-tasks), or as a tool for an MLLM, and how to run evaluations on the SA-Co
-dataset.
-
-To run the Jupyter notebook examples:
-
-```bash
-# Make sure you have the notebooks dependencies installed
-pip install -e ".[notebooks]"
-
-# Start Jupyter notebook
-jupyter notebook examples/sam3_image_predictor_example.ipynb
-```
-
-## Model
-
-SAM 3 consists of a detector and a tracker that share a vision encoder. It has 848M parameters. The
-detector is a DETR-based model conditioned on text, geometry, and image
-exemplars. The tracker inherits the SAM 2 transformer encoder-decoder
-architecture, supporting video segmentation and interactive refinement.
-
-## Image Results
-
-<div align="center">
-<table style="min-width: 80%; border: 2px solid #ddd; border-collapse: collapse">
-  <thead>
-    <tr>
-      <th rowspan="3" style="border-right: 2px solid #ddd; padding: 12px 20px">Model</th>
-      <th colspan="3" style="text-align: center; border-right: 2px solid #ddd; padding: 12px 20px">Instance Segmentation</th>
-      <th colspan="5" style="text-align: center; padding: 12px 20px">Box Detection</th>
-    </tr>
-    <tr>
-      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">LVIS</th>
-      <th style="text-align: center; border-right: 2px solid #ddd; padding: 12px 20px">SA-Co/Gold</th>
-      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">LVIS</th>
-      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">COCO</th>
-      <th style="text-align: center; padding: 12px 20px">SA-Co/Gold</th>
-    </tr>
-    <tr>
-      <th style="text-align: center; padding: 12px 20px">cgF1</th>
-      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">AP</th>
-      <th style="text-align: center; border-right: 2px solid #ddd; padding: 12px 20px">cgF1</th>
-      <th style="text-align: center; padding: 12px 20px">cgF1</th>
-      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">AP</th>
-      <th style="text-align: center; padding: 12px 20px">AP</th>
-      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">AP<sub>o</sub>
-</th>
-      <th style="text-align: center; padding: 12px 20px">cgF1</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="border-right: 2px solid #ddd; padding: 10px 20px">Human</td>
-      <td style="text-align: center; padding: 10px 20px">-</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
-      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">72.8</td>
-      <td style="text-align: center; padding: 10px 20px">-</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
-      <td style="text-align: center; padding: 10px 20px">-</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
-      <td style="text-align: center; padding: 10px 20px">74.0</td>
-    </tr>
-    <tr>
-      <td style="border-right: 2px solid #ddd; padding: 10px 20px">OWLv2*</td>
-      <td style="text-align: center; padding: 10px 20px; color: #999">29.3</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px; color: #999">43.4</td>
-      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">24.6</td>
-      <td style="text-align: center; padding: 10px 20px; color: #999">30.2</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px; color: #999">45.5</td>
-      <td style="text-align: center; padding: 10px 20px">46.1</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">23.9</td>
-      <td style="text-align: center; padding: 10px 20px">24.5</td>
-    </tr>
-    <tr>
-      <td style="border-right: 2px solid #ddd; padding: 10px 20px">DINO-X</td>
-      <td style="text-align: center; padding: 10px 20px">-</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">38.5</td>
-      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">21.3</td>
-      <td style="text-align: center; padding: 10px 20px">-</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">52.4</td>
-      <td style="text-align: center; padding: 10px 20px">56.0</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
-      <td style="text-align: center; padding: 10px 20px">22.5</td>
-    </tr>
-    <tr>
-      <td style="border-right: 2px solid #ddd; padding: 10px 20px">Gemini 2.5</td>
-      <td style="text-align: center; padding: 10px 20px">13.4</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
-      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">13.0</td>
-      <td style="text-align: center; padding: 10px 20px">16.1</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
-      <td style="text-align: center; padding: 10px 20px">-</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
-      <td style="text-align: center; padding: 10px 20px">14.4</td>
-    </tr>
-    <tr style="border-top: 2px solid #b19c9cff">
-      <td style="border-right: 2px solid #ddd; padding: 10px 20px">SAM 3</td>
-      <td style="text-align: center; padding: 10px 20px">37.2</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">48.5</td>
-      <td style="text-align: center; border-right: 2px solid #ddd; padding: 10px 20px">54.1</td>
-      <td style="text-align: center; padding: 10px 20px">40.6</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">53.6</td>
-      <td style="text-align: center; padding: 10px 20px">56.4</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">55.7</td>
-      <td style="text-align: center; padding: 10px 20px">55.7</td>
-    </tr>
-  </tbody>
-</table>
-
-<p style="text-align: center; margin-top: 10px; font-size: 0.9em; color: #ddd;">* Partially trained on LVIS, AP<sub>o</sub> refers to COCO-O accuracy</p>
-
-</div>
-
-## Video Results
-
-<div align="center">
-<table style="min-width: 80%; border: 2px solid #ddd; border-collapse: collapse">
-  <thead>
-    <tr>
-      <th rowspan="2" style="border-right: 2px solid #ddd; padding: 12px 20px">Model</th>
-      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">SA-V test</th>
-      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">YT-Temporal-1B test</th>
-      <th colspan="2" style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">SmartGlasses test</th>
-      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">LVVIS test</th>
-      <th style="text-align: center; padding: 12px 20px">BURST test</th>
-    </tr>
-    <tr>
-      <th style="text-align: center; padding: 12px 20px">cgF1</th>
-      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">pHOTA</th>
-      <th style="text-align: center; padding: 12px 20px">cgF1</th>
-      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">pHOTA</th>
-      <th style="text-align: center; padding: 12px 20px">cgF1</th>
-      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">pHOTA</th>
-      <th style="text-align: center; border-right: 1px solid #eee; padding: 12px 20px">mAP</th>
-      <th style="text-align: center; padding: 12px 20px">HOTA</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="border-right: 2px solid #ddd; padding: 10px 20px">Human</td>
-      <td style="text-align: center; padding: 10px 20px">53.1</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">70.5</td>
-      <td style="text-align: center; padding: 10px 20px">71.2</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">78.4</td>
-      <td style="text-align: center; padding: 10px 20px">58.5</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">72.3</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">-</td>
-      <td style="text-align: center; padding: 10px 20px">-</td>
-    </tr>
-    <tr style="border-top: 2px solid #b19c9cff">
-      <td style="border-right: 2px solid #ddd; padding: 10px 20px">SAM 3</td>
-      <td style="text-align: center; padding: 10px 20px">30.3</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">58.0</td>
-      <td style="text-align: center; padding: 10px 20px">50.8</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">69.9</td>
-      <td style="text-align: center; padding: 10px 20px">36.4</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">63.6</td>
-      <td style="text-align: center; border-right: 1px solid #eee; padding: 10px 20px">36.3</td>
-      <td style="text-align: center; padding: 10px 20px">44.5</td>
-    </tr>
-  </tbody>
-</table>
-</div>
-
-## SA-Co Dataset
-
-We release 2 image benchmarks, [SA-Co/Gold](scripts/eval/gold/README.md) and
-[SA-Co/Silver](scripts/eval/silver/README.md), and a video benchmark
-[SA-Co/VEval](scripts/eval/veval/README.md). The datasets contain images (or videos) with annotated noun phrases. Each image/video and noun phrase pair is annotated with instance masks and unique IDs of each object matching the phrase. Phrases that have no matching objects (negative prompts) have no masks, shown in red font in the figure. See the linked READMEs for more details on how to download and run evaluations on the datasets.
-
-* HuggingFace host: [SA-Co/Gold](https://huggingface.co/datasets/facebook/SACo-Gold), [SA-Co/Silver](https://huggingface.co/datasets/facebook/SACo-Silver) and [SA-Co/VEval](https://huggingface.co/datasets/facebook/SACo-VEval)
-* Roboflow host: [SA-Co/Gold](https://universe.roboflow.com/sa-co-gold), [SA-Co/Silver](https://universe.roboflow.com/sa-co-silver) and [SA-Co/VEval](https://universe.roboflow.com/sa-co-veval)
-
-![SA-Co dataset](assets/sa_co_dataset.jpg?raw=true)
-
-## Development
-
-To set up the development environment:
-
-```bash
-pip install -e ".[dev,train]"
-```
-
-To format the code:
-
-```bash
-ufmt format .
-```
-
-## Contributing
-
-See [contributing](CONTRIBUTING.md) and the
-[code of conduct](CODE_OF_CONDUCT.md).
-
-## License
-
-This project is licensed under the SAM License - see the [LICENSE](LICENSE) file
-for details.
-
-## Acknowledgements
-
-We would like to thank the following people for their contributions to the SAM 3 project: Alex He, Alexander Kirillov,
-Alyssa Newcomb, Ana Paula Kirschner Mofarrej, Andrea Madotto, Andrew Westbury, Ashley Gabriel, Azita Shokpour,
-Ben Samples, Bernie Huang, Carleigh Wood, Ching-Feng Yeh, Christian Puhrsch, Claudette Ward, Daniel Bolya,
-Daniel Li, Facundo Figueroa, Fazila Vhora, George Orlin, Hanzi Mao, Helen Klein, Hu Xu, Ida Cheng, Jake Kinney,
-Jiale Zhi, Jo Sampaio, Joel Schlosser, Justin Johnson, Kai Brown, Karen Bergan, Karla Martucci, Kenny Lehmann,
-Maddie Mintz, Mallika Malhotra, Matt Ward, Michelle Chan, Michelle Restrepo, Miranda Hartley, Muhammad Maaz,
-Nisha Deo, Peter Park, Phillip Thomas, Raghu Nayani, Rene Martinez Doehner, Robbie Adkins, Ross Girshik, Sasha
-Mitts, Shashank Jain, Spencer Whitehead, Ty Toledano, Valentin Gabeur, Vincent Cho, Vivian Lee, William Ngan,
-Xuehai He, Yael Yungster, Ziqi Pang, Ziyi Dou, Zoe Quake.
-
-## Citing SAM 3
-
-If you use SAM 3 or the SA-Co dataset in your research, please use the following BibTeX entry.
-
-```bibtex
-@misc{carion2025sam3segmentconcepts,
-      title={SAM 3: Segment Anything with Concepts},
-      author={Nicolas Carion and Laura Gustafson and Yuan-Ting Hu and Shoubhik Debnath and Ronghang Hu and Didac Suris and Chaitanya Ryali and Kalyan Vasudev Alwala and Haitham Khedr and Andrew Huang and Jie Lei and Tengyu Ma and Baishan Guo and Arpit Kalla and Markus Marks and Joseph Greer and Meng Wang and Peize Sun and Roman Rädle and Triantafyllos Afouras and Effrosyni Mavroudi and Katherine Xu and Tsung-Han Wu and Yu Zhou and Liliane Momeni and Rishi Hazra and Shuangrui Ding and Sagar Vaze and Francois Porcher and Feng Li and Siyuan Li and Aishwarya Kamath and Ho Kei Cheng and Piotr Dollár and Nikhila Ravi and Kate Saenko and Pengchuan Zhang and Christoph Feichtenhofer},
-      year={2025},
-      eprint={2511.16719},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2511.16719},
+```json
+{
+  "checkpoint": "assets/models/sam3.pt"
 }
 ```
+
+## 快速开始
+
+使用项目自带示例配置运行：
+
+```bash
+conda activate sam3
+python autolabelx.py --config configs/config.example.json
+```
+
+## 配置文件说明
+
+推荐使用单一的 `classes` 结构，每个类别在一条配置里完整描述。
+
+示例配置文件位置：
+
+- configs/config.example.json
+
+示例内容：
+
+```json
+{
+  "image_dir": "assets/images",
+  "output_root": "runs",
+  "checkpoint": "assets/models/sam3.pt",
+  "device": "cuda",
+  "resolution": 1008,
+  "ignore_index": 255,
+  "classes": [
+    {
+      "id": 0,
+      "name": "vehicle",
+      "prompts": ["vehicle", "car", "truck", "pickup truck", "suv", "automobile"],
+      "confidence_threshold": 0.35,
+      "color_rgb": [0, 0, 142]
+    },
+    {
+      "id": 1,
+      "name": "person",
+      "prompts": ["person", "people", "child", "kid", "human"],
+      "confidence_threshold": 0.35,
+      "color_rgb": [220, 20, 60]
+    }
+  ]
+}
+```
+
+### 顶层字段
+
+- `image_dir`
+  原始图像目录，支持相对项目根目录路径
+- `output_root`
+  输出根目录，支持相对项目根目录路径
+- `checkpoint`
+  `SAM3` 权重路径，支持相对项目根目录路径
+- `device`
+  推理设备，通常使用 `cuda`
+- `resolution`
+  模型推理输入分辨率。图像会先缩放到该大小送入模型，再恢复到原图尺寸
+- `ignore_index`
+  语义分割中未命中类别的默认像素值，通常使用 `255`
+- `classes`
+  类别配置列表
+
+### 类别字段
+
+- `classes[].id`
+  类别 ID，用于语义分割标签图
+- `classes[].name`
+  类别名称
+- `classes[].prompts`
+  推荐写法。多个独立提示词组成的列表，例如 `["person", "child", "kid", "human"]`
+- `classes[].prompt`
+  兼容写法。表示单个文本提示词字符串
+- `classes[].confidence_threshold`
+  该类别自己的实例保留阈值，必填
+- `classes[].color_rgb`
+  语义分割可视化颜色，按 `RGB` 顺序填写
+
+## 如何编写自己的配置文件
+
+建议按下面步骤组织自己的类别配置：
+
+1. 先明确你的数据目录，把 `image_dir` 指向待处理图像根目录
+2. 为每个语义类别分配稳定的 `id`
+3. 为每个类别写清晰、尽量贴近视觉对象的 `prompts`
+4. 为每个类别单独设置 `confidence_threshold`
+5. 为每个类别指定一个易区分的 `color_rgb`
+
+### 提示词建议
+
+结合 `SAM3` 官方示例和说明，文本提示词建议遵循以下原则：
+
+- 优先使用简洁、明确的自然语言名词或名词短语，例如 `person`、`shoe`、`pickup truck`
+- 当类别存在同义表达或子类差异时，推荐使用 `prompts` 列表分别提供多个独立提示词
+- 提示词应与目标视觉语义保持一致，避免把多个不相关描述混在同一条 prompt 中
+- 如果某个类别容易与相邻类别混淆，优先补充更具体的目标短语，再结合类别阈值做调优
+
+## 输出结果结构
+
+运行后会在 `output_root` 下生成一个时间戳目录，例如：
+
+```text
+runs/
+  <run_timestamp>/
+    images/
+    classes/
+      vehicle/
+        annotations/
+        visualizations/
+      person/
+        annotations/
+        visualizations/
+    detection/
+      annotations/
+      visualizations/
+    instance_segmentation/
+      annotations/
+      visualizations/
+    semantic_segmentation/
+      annotations/
+      visualizations/
+    manifest.json
+```
+
+### 各目录说明
+
+- `images/`
+  原始图像软链接，便于任务目录自包含管理
+- `classes/<class>/annotations/`
+  每个类别单独跑出的中间实例分割标注
+- `classes/<class>/visualizations/`
+  每个类别单独跑出的中间可视化结果
+- `detection/annotations/`
+  按图像聚合后的检测标注结果
+- `detection/visualizations/`
+  按图像聚合后的检测可视化结果
+- `instance_segmentation/annotations/`
+  按图像聚合后的实例分割标注结果
+- `instance_segmentation/visualizations/`
+  按图像聚合后的实例分割可视化结果
+- `semantic_segmentation/annotations/`
+  最终语义分割标签图，保存为 `.png`
+- `semantic_segmentation/visualizations/`
+  最终语义分割验证图，通常为“原图 + 彩色分割图”
+- `manifest.json`
+  本次任务的配置快照和运行信息记录
+
+## 常见使用流程
+
+推荐的工作流如下：
+
+1. 准备图像目录
+2. 下载并配置 `SAM3` 权重
+3. 复制并修改 `configs/config.example.json`
+4. 运行 `python autolabelx.py --config your_config.json`
+5. 先检查 `classes/` 下每个类别的中间结果
+6. 再检查 `detection/`、`instance_segmentation/`、`semantic_segmentation/` 的最终输出
+7. 将结果用于人工修订或后续训练
+
+## 当前限制
+
+- 标注质量仍然依赖类别提示词设计和类别阈值设置
+- 复杂遮挡、远小目标、强反光或类别歧义场景下，仍建议人工复核
+
+## 致谢
+
+本项目基于 `SAM3` 进行工程化扩展，实现了批量数据自动预标注、实例分割、语义分割与可视化流程封装。

@@ -1,0 +1,74 @@
+{
+  "image_dir": "assets/images",
+  "output_root": "runs",
+  "checkpoint": "assets/models/sam3.pt",
+  "device": "cuda",
+  "resolution": 1008,
+  "ignore_index": 255,
+  "classes": [
+    {
+      "id": 0,
+      "name": "vehicle",
+      "prompts": [
+        "vehicle",
+        "car",
+        "truck",
+        "pickup truck",
+        "suv",
+        "automobile"
+      ],
+      "confidence_threshold": 0.35,
+      "color_rgb": [
+        0,
+        0,
+        142
+      ]
+    },
+    {
+      "id": 1,
+      "name": "person",
+      "prompts": [
+        "person",
+        "people",
+        "child",
+        "kid",
+        "human"
+      ],
+      "confidence_threshold": 0.35,
+      "color_rgb": [
+        220,
+        20,
+        60
+      ]
+    },
+    {
+      "id": 2,
+      "name": "bag",
+      "prompts": [
+        "bag",
+        "paper bag",
+        "grocery bag",
+        "shopping bag"
+      ],
+      "confidence_threshold": 0.3,
+      "color_rgb": [
+        190,
+        153,
+        153
+      ]
+    },
+    {
+      "id": 3,
+      "name": "sky",
+      "prompts": [
+        "sky"
+      ],
+      "confidence_threshold": 0.25,
+      "color_rgb": [
+        70,
+        130,
+        180
+      ]
+    }
+  ]
+}
