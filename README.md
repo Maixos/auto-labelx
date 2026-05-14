@@ -37,7 +37,7 @@
 
 已验证环境：
 
-- Ubuntu `20.
+- Ubuntu `20.04`
 - CUDA `11.8`
 - Python `3.12`
 - PyTorch `2.6.0`
@@ -61,7 +61,7 @@ pip install -r requirements.txt
 
 运行前需要准备 `SAM3` 权重文件。
 
-- Google Drive 下载地址：`待补充`
+- Google Drive 下载地址：https://drive.google.com/file/d/17GwiupOMixXGH2CB2NalNHLavJi1lR3b/view?usp=drive_link
 
 下载完成后，将权重文件放到你自己的路径，并在配置文件中通过 `checkpoint` 指定。例如：
 
