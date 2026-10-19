@@ -1,0 +1,51 @@
+{
+  "dataset_dir": "../data/labelme_dataset",
+  "output_dir": "../runs/reviewx/example",
+  "checkpoint": "../assets/models/sam3.pt",
+  "device": "cuda",
+  "resolution": 1008,
+  "min_polygon_area": 4.0,
+  "duplicate_iou": 0.9,
+  "match_iou": 0.5,
+  "low_mask_iou": 0.65,
+  "missing_min_area_ratio": 0.0002,
+  "visualize_pass": false,
+  "classes": [
+    {
+      "name": "person",
+      "prompts": ["person", "pedestrian"],
+      "model_audit": true,
+      "confidence_threshold": 0.60
+    },
+    {
+      "name": "car",
+      "prompts": ["car", "sedan", "SUV"],
+      "model_audit": true,
+      "confidence_threshold": 0.65
+    },
+    {
+      "name": "dog",
+      "prompts": ["dog"],
+      "model_audit": true,
+      "confidence_threshold": 0.65
+    },
+    {
+      "name": "traffic_cone",
+      "prompts": ["traffic cone", "road cone"],
+      "model_audit": true,
+      "confidence_threshold": 0.65
+    },
+    {
+      "name": "fire_hydrant",
+      "prompts": ["fire hydrant"],
+      "model_audit": true,
+      "confidence_threshold": 0.65
+    },
+    {
+      "name": "bench",
+      "prompts": ["park bench", "outdoor bench"],
+      "model_audit": true,
+      "confidence_threshold": 0.65
+    }
+  ]
+}
